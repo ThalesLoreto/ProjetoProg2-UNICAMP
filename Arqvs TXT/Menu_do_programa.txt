@@ -1,0 +1,36 @@
+do{
+     
+   printf("1 -> Cadastrar Aluno");
+     
+   printf("2 -> Consultar Diciplina");
+
+        	scanf("%d",&num);
+  
+      
+   
+     		switch(num){
+ 
+	       		case 0:break;
+ 
+
+       
+        		case 1:  ;  
+      
+    			  break;
+
+  
+       
+      		case 2:fp = fopen ("Disciplinas.txt", "r");  
+  
+            		  break;  
+
+  
+        
+        
+        default: printf("\n\n Opcao nao valida");
+        
+			   }getchar();    /* Limpa o buffer de entrada */
+   
+
+			  }while((num!=0));
+     
