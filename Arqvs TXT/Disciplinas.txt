@@ -29,5 +29,3 @@ ST568,Redes de Comunicação I,4
 ST767,Banco de Dados II,4
 TT106,Organização e Arquitetura de Computadores,4
 TT350,Administração de Empresas,4
-
-
