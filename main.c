@@ -19,14 +19,14 @@ typedef struct disciplina {
 	char nome[101];
 	char creditos;
     int qtde_requisitos;
-	Requisito * requisitos;
+	Requisito requisitos[2];
 } Disciplina;
 
 void limpar(char * s);
 int  do_login(char login[], char password[]);
 Disciplina get_subjects_by_code(char * code);
 Requisito get_requiriment_info_by_code(char * codigo);
-Requisito * get_requiriments_by_code(char * codigo, int * qtde);
+void get_requiriments_by_code(char * codigo, Requisito requisitos[], int * qtde);
 void students_registration();
 void subjects_search();
 
@@ -37,7 +37,7 @@ int main(void)
     int opt;
 	char login[10], password[8];
 
-	//while (1) {
+	do {
         while (!has_logged) {
             printf("Usuario: ");
             fgets(login, 10, stdin);
@@ -49,13 +49,16 @@ int main(void)
 
             if (!has_logged) {
                 printf("Usuario ou senha invalidos!\n\n");
+            } else {
+                printf("Login realizado com sucesso!!\n\n");
             }
         }
-        printf("Login realizado com sucesso!!\n\n");
 
         printf("## Menu de Opções ##\n\n");
         printf("1. Cadastro de Alunos\n");
         printf("2. Consulta de Disciplinas\n");
+        printf("\n");
+        printf("0. Sair\n");
         printf("\n");
         printf("Digite sua opcao: ");
 
@@ -77,7 +80,7 @@ int main(void)
                 printf("Opcao invalida!\n");
                 break;
         }
-    //}
+    } while (opt != 0);
 
     return 0;
 }
@@ -86,7 +89,10 @@ int main(void)
 void limpar(char * s) {
     int i;
     for(i=0; s[i] != '\0'; i++) {
-        if (s[i] == '\n') s[i] = '\0';
+        if (
+            s[i] == '\n' || 
+            s[i] == '\r'
+        ) s[i] = '\0';
     }
 }
 
@@ -191,34 +197,34 @@ void subjects_search() {
     fgets(codigo, 6, stdin);
 
     limpar(codigo);
-
-    printf("|%s|\n", codigo);
-
     disciplina = get_subjects_by_code(codigo);
 
-    printf("Nome: %s\n", disciplina.nome);
-    printf("Quantidade de Creditos: |%c|\n", disciplina.creditos);
-    printf("Pre-requisito(s): ");
+    if (strcmp(disciplina.codigo, "") == 0) {
+        printf("Disciplina não encontrada!\n\n");
+        return;
+    }
 
+    printf("Nome: %s\n", disciplina.nome);
+    printf("Quantidade de Creditos: %c\n", disciplina.creditos);
+    printf("Pre-requisito(s): ");
     for (j = 0; j < disciplina.qtde_requisitos; j++) {
         printf("%s - %s", disciplina.requisitos[j].codigo, disciplina.requisitos[j].nome);
         if (j+1 < disciplina.qtde_requisitos){
             printf(", ");
         }
     }   
-    printf("\n");
+    printf("\n\n");
 
     return;
 }
 
-Requisito get_requiriment_info_by_code(char * codigo) {
+Requisito get_requiriment_info_by_code(char * code) {
     FILE * fp_disciplinas;
     Requisito requisito;
     const char s[2] = ",";
 	char *token;
     char linha[90];
     char *result;
-    int j;
 
     fp_disciplinas = fopen("Arqvs TXT/Disciplinas.txt", "r");
 
@@ -228,29 +234,22 @@ Requisito get_requiriment_info_by_code(char * codigo) {
         return requisito;
     }
 
-    limpar(codigo);
-    printf("codigo info: %s\n", codigo);
-
     while (!feof(fp_disciplinas))
     {
         result = fgets(linha, 90, fp_disciplinas);
-
-        if (result)
-          token = strtok(result, s);
-
-        if (strcmp(codigo, token) == 0) {
-            printf("Entrou: |%s|\n", token);
+       
+        if (result) {
+            token = strtok(result, s);
+        }
+        limpar(code);
+        if (strcmp(code, token) == 0) {
             strcpy(requisito.codigo, token);
             limpar(requisito.codigo);
 
             token = strtok(NULL, s);
 
-            printf("|%s|\n", token);
-
             strcpy(requisito.nome, token);
             limpar(requisito.nome);
-
-            printf("|%s|,|%s|\n", requisito.nome, token);
 
             break;
         }
@@ -260,10 +259,8 @@ Requisito get_requiriment_info_by_code(char * codigo) {
     return requisito;
 }
 
-Requisito * get_requiriments_by_code(char * codigo, int * qtde) {
+void get_requiriments_by_code(char * codigo, Requisito requisitos[], int * qtde) {
     FILE * fp_requisitos;
-    Requisito requisitos[2];
-    Requisito * requisitos_validos = NULL;
     char codigo_requisito[7];
     const char s[2] = ",";
 	char *token;
@@ -278,7 +275,7 @@ Requisito * get_requiriments_by_code(char * codigo, int * qtde) {
     if (fp_requisitos == NULL) {
         printf("ERRO AO LER ARQUIVO DE PREREQUISITOS!\n");
 
-        return requisitos_validos;
+        return;
     }
 
     while (!feof(fp_requisitos))
@@ -290,26 +287,17 @@ Requisito * get_requiriments_by_code(char * codigo, int * qtde) {
         if (strcmp(codigo, token) == 0) {
             token = strtok(NULL, s);
             strcpy(codigo_requisito, token);
-            printf("token: %s\n", token);
             limpar(codigo_requisito);
-            printf("token2: %s\n", token);
-            printf("codigo_requisito: %s\n", codigo_requisito);
 
-            requisitos[(*qtde)] = get_requiriment_info_by_code(codigo_requisito);
+            requisitos[j] = get_requiriment_info_by_code(codigo_requisito);
             
             *qtde += 1;
-            break;
+            j++;
         }
     }
     fclose(fp_requisitos);
 
-    requisitos_validos = (Requisito *) malloc(sizeof(Requisito) * (*qtde));
-
-    for(j = 0; j < (*qtde); j++) {
-        requisitos_validos[j] = requisitos[j];
-    }
-
-    return requisitos_validos;
+    return;
 }
 
 
@@ -336,7 +324,7 @@ Disciplina get_subjects_by_code(char * codigo) {
 
     while (!feof(fp_disciplinas))
     {
-        result = fgets(linha, 90, fp_disciplinas);
+        result = fgets(linha, 130, fp_disciplinas);
 
         if (result)
           token = strtok(result, s);
@@ -365,8 +353,8 @@ Disciplina get_subjects_by_code(char * codigo) {
     }
     fclose(fp_disciplinas);
 
-    printf("codigo: %s\n", codigo);
-    disciplina.requisitos = get_requiriments_by_code(codigo, &disciplina.qtde_requisitos);
+    if (strcmp(disciplina.codigo, "") > 0)
+        get_requiriments_by_code(codigo, disciplina.requisitos, &disciplina.qtde_requisitos);
 
     return disciplina;
 }
